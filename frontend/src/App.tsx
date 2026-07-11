@@ -4,7 +4,7 @@
 import { useEffect, useState } from "react";
 import { Activity, Code2, Moon, Sun } from "lucide-react";
 import ChatWindow from "./components/ChatWindow";
-import KpiDashboard from "./components/KpiDashboard";
+import RightPanel from "./components/RightPanel";
 import { useTheme } from "./hooks/useTheme";
 
 function ThemeToggle() {
@@ -75,8 +75,8 @@ export default function App() {
         <section className="flex min-h-0 flex-1 flex-col lg:border-r lg:border-line">
           <ChatWindow />
         </section>
-        <aside className="hidden w-[340px] shrink-0 overflow-y-auto bg-page/60 lg:block xl:w-[380px]">
-          <KpiDashboard />
+        <aside className="hidden w-[380px] shrink-0 bg-page/60 lg:flex lg:flex-col xl:w-[440px]">
+          <RightPanel />
         </aside>
       </main>
     </div>

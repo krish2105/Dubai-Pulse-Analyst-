@@ -16,7 +16,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from slowapi.errors import RateLimitExceeded
 
-from app.api.routes import chat, health, insights, metrics
+from app.api.routes import analytics, chat, health, insights, metrics
 from app.config import get_settings
 from app.middleware import APIKeyMiddleware
 from app.rate_limit import limiter
@@ -95,6 +95,7 @@ def create_app() -> FastAPI:
     # --- Routes ---
     app.include_router(health.router)
     app.include_router(insights.router)
+    app.include_router(analytics.router)
     app.include_router(metrics.router)
     app.include_router(chat.router)
 

@@ -92,3 +92,22 @@ export interface Insights {
   top_zones: { zone: string; price_per_sqft: number }[];
   top_yield: { community: string; yield_pct: number }[];
 }
+
+export interface GeoPoint {
+  community: string;
+  zone: string;
+  lat: number;
+  lon: number;
+  price_per_sqft: number | null;
+  n_secondary: number;
+  yield_pct: number | null;
+  dist_km: number | null;
+}
+
+export interface Analytics {
+  price_distribution: { bin: number; n: number }[];
+  rate_vs_price: { year_month: string; base_rate: number; price_per_sqft: number }[];
+  yield_vs_price: { community: string; price_per_sqft: number; yield_pct: number }[];
+  seasonality: { month: number; avg_mom_pct: number }[];
+  price_by_type: { property_type: string; price_per_sqft: number; n: number }[];
+}
