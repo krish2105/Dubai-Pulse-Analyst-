@@ -39,6 +39,22 @@ Rules:
 - Round monetary aggregates. Add ORDER BY and a sensible LIMIT (<= 50).
 - Use exact community/zone spellings from the schema. If a needed value is not in the schema,
   choose the closest valid one and note it in filters_summary.
+- Do NOT invent columns. `transactions` has `transaction_type`; `area_monthly` does NOT — never
+  filter area_monthly by transaction_type. Only add filters the question actually asks for.
+
+Worked examples (follow these patterns exactly):
+
+Q: "Average price per sqft in Palm Jumeirah for secondary sales in 2025"
+{{"sql": "SELECT ROUND(AVG(price_per_sqft_usd)) AS avg_price_per_sqft FROM transactions WHERE transaction_type='secondary' AND community='Palm Jumeirah' AND year=2025", "rationale": "avg secondary price/sqft, Palm Jumeirah, 2025", "tables": ["transactions"], "filters_summary": "secondary sales, Palm Jumeirah, 2025"}}
+
+Q: "Which zones saw the biggest price increase in 2024?"
+{{"sql": "WITH y AS (SELECT zone, year, AVG(secondary_price_per_sqft_usd) ppsf FROM area_monthly WHERE year IN (2023,2024) GROUP BY zone, year) SELECT a.zone, ROUND((b.ppsf-a.ppsf)/a.ppsf*100,1) AS pct_change FROM y a JOIN y b USING(zone) WHERE a.year=2023 AND b.year=2024 ORDER BY pct_change DESC LIMIT 10", "rationale": "YoY change in secondary price/sqft by zone", "tables": ["area_monthly"], "filters_summary": "secondary price/sqft, 2023 vs 2024, by zone"}}
+
+Q: "Compare rental yields across Downtown Dubai and Dubai Marina in 2025"
+{{"sql": "SELECT community, ROUND(AVG(rental_yield_pct),2) AS avg_yield_pct FROM area_monthly WHERE year=2025 AND community IN ('Downtown Dubai','Dubai Marina') GROUP BY community ORDER BY avg_yield_pct DESC", "rationale": "avg gross rental yield by community, 2025", "tables": ["area_monthly"], "filters_summary": "rental yield, 2025, Downtown Dubai vs Dubai Marina"}}
+
+Q: "Why did off-plan transaction volume change in early 2022?" (transaction COUNTS → use the transactions table)
+{{"sql": "SELECT year_month, COUNT(*) AS offplan_volume FROM transactions WHERE transaction_type='offplan' AND year_month BETWEEN '2021-07' AND '2022-06' GROUP BY year_month ORDER BY year_month", "rationale": "monthly off-plan transaction counts around early 2022", "tables": ["transactions"], "filters_summary": "off-plan volume, Jul 2021 – Jun 2022"}}
 """
 
 
@@ -101,9 +117,8 @@ class QueryAgent:
     async def _propose(self, system: str, user: str) -> dict:
         """Ask the LLM for a SQL proposal (JSON). Falls back gracefully."""
         try:
-            raw = await self.llm.complete(
-                system=system, user=user, model=self.engine.settings.anthropic_sql_model
-            )
+            # json_mode nudges providers (Ollama/Groq/OpenAI/Gemini) to emit valid JSON.
+            raw = await self.llm.complete(system=system, user=user, json_mode=True)
             data = extract_json(raw)
             if "sql" not in data:
                 data["sql"] = ""

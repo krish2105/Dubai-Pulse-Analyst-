@@ -28,5 +28,7 @@ async def health() -> dict:
         "env": settings.app_env,
         "data": {"transactions": rows, "ready": data_ok},
         "llm_configured": settings.llm_enabled,
+        "llm_provider": settings.provider,
+        "llm_model": settings.resolved_model,
         "auth_enabled": bool(settings.backend_api_key),
     }

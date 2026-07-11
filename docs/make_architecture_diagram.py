@@ -67,8 +67,8 @@ ax.text(8.5, 4.68, "retry if low confidence", ha="center", color="#f87171", font
 # Data layer
 box(0.4, 1.2, 5.2, 1.1, "DuckDB Query Engine",
     "transactions (87k) · area_monthly · metro_stations  (Parquet)", ec=GREEN)
-box(6.1, 1.2, 5.45, 1.1, "Claude API (Sonnet) — Anthropic SDK",
-    "NL→SQL  ·  narrative generation", ec=PURPLE)
+box(6.1, 1.2, 5.45, 1.1, "LLM provider (pluggable)",
+    "Ollama (free/local) · Groq · Gemini · OpenAI · Claude", ec=PURPLE)
 
 arrow(1.65, 3.0, 2.6, 2.3, color=GREEN, lw=1.6)          # query agent -> duckdb
 arrow(10.1, 3.0, 9.3, 2.3, color=CYAN, lw=1.6)           # verifier -> duckdb? -> checks data

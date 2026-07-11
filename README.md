@@ -88,7 +88,7 @@ provably come from the data); the LLM is dependency-injected, so the whole orche
 | Backend | FastAPI (async), sse-starlette |
 | Orchestration | LangGraph (state machine) |
 | Data engine | DuckDB over Parquet |
-| LLM | Claude (Sonnet) via the Anthropic SDK |
+| LLM | **Pluggable & free by default** — Ollama (local, no key) · Groq · Gemini · OpenAI · Anthropic |
 | Auth / limits | `X-API-Key` middleware · slowapi rate limiting |
 | Container / CI | Docker · GitHub Actions (ruff + pytest + eslint + build) |
 | Hosting | Frontend → Vercel · Backend → Railway / Render |
@@ -118,7 +118,11 @@ Full column-by-column documentation: **[`backend/data/data_dictionary.md`](backe
 ## 6. Run it locally
 
 ### Prerequisites
-Python 3.12+, Node 20+, and an [Anthropic API key](https://console.anthropic.com/) (for live answers).
+Python 3.12+, Node 20+, and **a free LLM** — either:
+- **Ollama** (recommended, local, no key, no cost): install from [ollama.com](https://ollama.com), then `ollama pull qwen2.5:7b`; **or**
+- a free **[Groq](https://console.groq.com/keys)** or **[Gemini](https://aistudio.google.com/app/apikey)** key; or an OpenAI/Anthropic key.
+
+The default provider is **Ollama** — the app runs with zero API keys and zero cost.
 
 ### Backend
 
@@ -127,7 +131,8 @@ cd backend
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 
-cp .env.example .env            # then paste your ANTHROPIC_API_KEY into .env
+cp .env.example .env            # defaults to LLM_PROVIDER=ollama (free, local)
+                                # or set GROQ_API_KEY / GEMINI_API_KEY and change LLM_PROVIDER
 
 python -m app.data_pipeline     # builds data/processed/*.parquet from the raw CSVs
 uvicorn app.main:app --reload   # → http://localhost:8000  (docs at /docs)
