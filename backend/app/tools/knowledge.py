@@ -32,12 +32,15 @@ class KnowledgeBase:
     _lock = threading.Lock()
 
     def __init__(self) -> None:
-        self.events: list[dict[str, Any]] = json.loads(_EVENTS_PATH.read_text())
+        try:
+            self.events: list[dict[str, Any]] = json.loads(_EVENTS_PATH.read_text())
+        except (FileNotFoundError, OSError, json.JSONDecodeError):
+            self.events = []
         corpus = [
             _tok(f"{e['title']} {e['description']} {' '.join(e.get('tags', []))} {e.get('date','')}")
             for e in self.events
         ]
-        self._bm25 = BM25Okapi(corpus)
+        self._bm25 = BM25Okapi(corpus) if corpus else None
 
     @classmethod
     def instance(cls) -> KnowledgeBase:
@@ -49,7 +52,7 @@ class KnowledgeBase:
 
     def retrieve(self, query: str, k: int = 3, min_score: float = 0.5) -> list[dict[str, Any]]:
         """Return the top-k relevant events (above a small score floor)."""
-        if not query.strip():
+        if not query.strip() or self._bm25 is None:
             return []
         scores = self._bm25.get_scores(_tok(query))
         ranked = sorted(zip(scores, self.events, strict=False), key=lambda x: x[0], reverse=True)

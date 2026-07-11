@@ -17,6 +17,7 @@ RUN pip install --upgrade pip && pip install -r requirements.txt
 COPY app ./app
 COPY data/processed ./data/processed
 COPY data/data_dictionary.md ./data/data_dictionary.md
+COPY data/market_events.json ./data/market_events.json
 
 EXPOSE 8000
 
