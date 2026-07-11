@@ -72,10 +72,15 @@ def create_app() -> FastAPI:
         return JSONResponse(status_code=500, content={"detail": "Internal server error."})
 
     # --- CORS (before auth so preflight works) ---
+    # We authenticate via the X-API-Key header, not cookies, so credentials are
+    # not needed. That lets CORS_ORIGINS="*" work (handy for first deploy before
+    # the exact frontend URL is known) while staying safe behind the API key.
+    origins = settings.cors_origin_list
+    allow_all = "*" in origins
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=settings.cors_origin_list,
-        allow_credentials=True,
+        allow_origins=["*"] if allow_all else origins,
+        allow_credentials=False,
         allow_methods=["*"],
         allow_headers=["*"],
     )
