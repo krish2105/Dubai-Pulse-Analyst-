@@ -71,6 +71,18 @@ class Settings(BaseSettings):
     # ---- Query engine safety ----
     max_result_rows: int = Field(default=2000, alias="MAX_RESULT_ROWS")
 
+    # ---- Security ----
+    guardrail_enabled: bool = Field(default=True, alias="GUARDRAIL_ENABLED")
+    security_headers_enabled: bool = Field(default=True, alias="SECURITY_HEADERS_ENABLED")
+    max_concurrent_requests: int = Field(default=4, alias="MAX_CONCURRENT_REQUESTS")
+
+    # ---- Redis (caching + distributed rate limiting); blank -> in-memory ----
+    redis_url: str = Field(default="", alias="REDIS_URL")
+    cache_ttl: int = Field(default=3600, alias="CACHE_TTL")
+
+    # ---- Observability ----
+    telemetry_enabled: bool = Field(default=True, alias="TELEMETRY_ENABLED")
+
     # ---- App ----
     app_env: str = Field(default="development", alias="APP_ENV")
 

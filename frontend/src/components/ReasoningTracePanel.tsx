@@ -4,12 +4,13 @@
 
 import { useState } from "react";
 import {
-  ChevronDown, ChevronRight, Database, LineChart, PenLine, ShieldCheck,
+  ChevronDown, ChevronRight, Database, LineChart, PenLine, ShieldCheck, ShieldAlert,
   Workflow, CheckCircle2, Loader2, XCircle, MinusCircle,
 } from "lucide-react";
 import type { AgentEvent } from "../lib/types";
 
 const AGENT_META: Record<string, { label: string; icon: any; color: string }> = {
+  guardrail: { label: "Guardrail", icon: ShieldAlert, color: "text-rose-400" },
   orchestrator: { label: "Orchestrator", icon: Workflow, color: "text-accent-blue" },
   query_agent: { label: "Query Agent", icon: Database, color: "text-emerald-400" },
   analysis_agent: { label: "Analysis Agent", icon: LineChart, color: "text-accent-gold" },

@@ -28,6 +28,7 @@ from app.agents.events import AgentEvent, AgentEventStream
 from app.agents.orchestrator import Orchestrator
 from app.config import get_settings
 from app.rate_limit import limiter
+from app.security import get_concurrency_limiter
 
 logger = logging.getLogger("dubaipulse.chat")
 
@@ -69,6 +70,17 @@ async def chat(request: Request, body: ChatRequest):
     orchestrator = get_orchestrator()
 
     async def event_generator():
+        # Bound concurrent expensive requests (OWASP LLM10).
+        concurrency = get_concurrency_limiter()
+        if not await concurrency.acquire():
+            busy = AgentEvent(
+                type="error", agent="orchestrator", status="error",
+                detail="The server is busy handling other requests. Please try again in a moment.",
+            )
+            yield _sse(busy)
+            yield {"event": "done", "data": "{}"}
+            return
+
         stream = AgentEventStream()
 
         async def run_and_close():
@@ -95,6 +107,7 @@ async def chat(request: Request, body: ChatRequest):
                 yield _sse(event)
             yield {"event": "done", "data": "{}"}
         finally:
+            await concurrency.release()
             if not task.done():
                 task.cancel()
                 try:

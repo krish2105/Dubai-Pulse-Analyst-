@@ -20,6 +20,7 @@ from app.api.routes import chat, health, insights
 from app.config import get_settings
 from app.middleware import APIKeyMiddleware
 from app.rate_limit import limiter
+from app.security import SecurityHeadersMiddleware
 
 # --------------------------------------------------------------------------- #
 # Structured logging (console). Every agent step also logs here → audit trail.
@@ -87,6 +88,9 @@ def create_app() -> FastAPI:
 
     # --- API-key auth for protected routes ---
     app.add_middleware(APIKeyMiddleware)
+
+    # --- Security headers on every response ---
+    app.add_middleware(SecurityHeadersMiddleware)
 
     # --- Routes ---
     app.include_router(health.router)

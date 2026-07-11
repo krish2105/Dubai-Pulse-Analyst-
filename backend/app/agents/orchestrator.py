@@ -32,6 +32,7 @@ from langgraph.graph import END, START, StateGraph
 
 from app.agents.analysis_agent import AnalysisAgent
 from app.agents.events import AgentEventStream, emit_event, use_emitter
+from app.agents.guardrail import InputGuardrail
 from app.agents.narrative_agent import NarrativeAgent
 from app.agents.query_agent import QueryAgent
 from app.agents.verifier import Verifier
@@ -64,12 +65,16 @@ class OrchestratorState(TypedDict, total=False):
     should_retry: bool
     history: list[dict[str, Any]]
     language: str
+    blocked: bool
+    block_message: str
+    block_category: str
     final: dict[str, Any]
 
 
 class Orchestrator:
     def __init__(self, llm: LLMProtocol | None = None) -> None:
         self.llm = llm or LLMClient()
+        self.guardrail = InputGuardrail()
         self.query_agent = QueryAgent(self.llm)
         self.analysis_agent = AnalysisAgent()
         self.narrative_agent = NarrativeAgent(self.llm)
@@ -80,6 +85,8 @@ class Orchestrator:
     def _build_graph(self):
         g = StateGraph(OrchestratorState)
         # Node names deliberately differ from state keys (LangGraph forbids collisions).
+        g.add_node("guard", self._guard_node)
+        g.add_node("refuse", self._refuse_node)
         g.add_node("query", self._query_node)
         g.add_node("planner", self._route_node)
         g.add_node("analyze", self._analysis_node)
@@ -87,7 +94,11 @@ class Orchestrator:
         g.add_node("verify", self._verify_node)
         g.add_node("finalize", self._finalize_node)
 
-        g.add_edge(START, "query")
+        g.add_edge(START, "guard")
+        g.add_conditional_edges(
+            "guard", self._guard_selector, {"blocked": "refuse", "ok": "query"}
+        )
+        g.add_edge("refuse", END)
         g.add_edge("query", "planner")
         g.add_conditional_edges(
             "planner", self._route_selector,
@@ -103,6 +114,37 @@ class Orchestrator:
         return g.compile()
 
     # ------------------------------ nodes ----------------------------- #
+    async def _guard_node(self, state: OrchestratorState) -> dict:
+        from app.config import get_settings
+        if not get_settings().guardrail_enabled:
+            return {"blocked": False}
+        verdict = await self.guardrail.run(state["question"])
+        return {
+            "blocked": not verdict.allowed,
+            "block_message": verdict.message,
+            "block_category": verdict.category,
+        }
+
+    async def _refuse_node(self, state: OrchestratorState) -> dict:
+        message = state.get("block_message") or "I can only help with Dubai real-estate analysis."
+        final = {
+            "answer": message,
+            "citations": {"row_count": 0, "tables": [], "sql": "", "filters": "", "date_range": None},
+            "verification": {"verified": False, "confidence": "low", "numbers_checked": 0,
+                             "verified_count": 0, "unverified_claims": [], "known_value_count": 0,
+                             "reason": f"Request blocked by input guardrail ({state.get('block_category')})."},
+            "confidence": "low", "low_confidence": True, "route": "blocked",
+            "sql": "", "facts": [], "trend": None, "ranking": None,
+            "notes": [], "retries": 0, "language": state.get("language", "en"),
+            "blocked": True,
+        }
+        await emit_event("orchestrator", "complete", "Request refused by guardrail.",
+                         type="final", **final)
+        return {"final": final}
+
+    def _guard_selector(self, state: OrchestratorState) -> str:
+        return "blocked" if state.get("blocked") else "ok"
+
     async def _query_node(self, state: OrchestratorState) -> dict:
         query_out = await self.query_agent.run(state["question"], state.get("history"))
         return {"query_out": query_out}
