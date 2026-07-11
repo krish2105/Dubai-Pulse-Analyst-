@@ -18,6 +18,18 @@ export async function fetchInsights(): Promise<Insights> {
   return res.json();
 }
 
+export async function sendFeedback(requestId: string, rating: "up" | "down"): Promise<void> {
+  try {
+    await fetch(`${BASE_URL}/feedback`, {
+      method: "POST",
+      headers: headers({ "Content-Type": "application/json" }),
+      body: JSON.stringify({ request_id: requestId, rating }),
+    });
+  } catch {
+    /* non-critical */
+  }
+}
+
 /**
  * POST a question to /chat and stream Server-Sent Events.
  * Calls `onEvent` for each parsed event. Returns when the stream ends.

@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import logging
 
+from app import telemetry
 from app.agents.events import emit_event
 from app.tools.duckdb_engine import DuckDBEngine, QueryResult, get_engine
 from app.tools.llm import LLMProtocol, extract_json
@@ -132,6 +133,7 @@ class QueryAgent:
         try:
             # json_mode nudges providers (Ollama/Groq/OpenAI/Gemini) to emit valid JSON.
             raw = await self.llm.complete(system=system, user=user, json_mode=True)
+            telemetry.record_llm(len(system) + len(user), len(raw))
             data = extract_json(raw)
             if "sql" not in data:
                 data["sql"] = ""

@@ -30,6 +30,7 @@ from typing import Any, TypedDict
 
 from langgraph.graph import END, START, StateGraph
 
+from app import telemetry
 from app.agents.analysis_agent import AnalysisAgent
 from app.agents.events import AgentEventStream, emit_event, use_emitter
 from app.agents.guardrail import InputGuardrail
@@ -138,6 +139,9 @@ class Orchestrator:
             "notes": [], "retries": 0, "language": state.get("language", "en"),
             "blocked": True,
         }
+        snap = telemetry.snapshot()
+        final["request_id"] = snap.get("request_id", "")
+        final["telemetry"] = snap
         await emit_event("orchestrator", "complete", "Request refused by guardrail.",
                          type="final", **final)
         return {"final": final}
@@ -219,6 +223,9 @@ class Orchestrator:
             "retries": state.get("retries", 0),
             "language": state.get("language", "en"),
         }
+        snap = telemetry.snapshot()
+        final["request_id"] = snap.get("request_id", "")
+        final["telemetry"] = snap
         await emit_event(
             "orchestrator", "complete", "Answer finalised.",
             type="final", **final,
@@ -264,6 +271,7 @@ class Orchestrator:
         resolved_language = self._resolve_language(question, language)
 
         async def _invoke() -> dict:
+            telemetry.start_request(question)
             await emit_event("orchestrator", "running", "Received question — planning the investigation…")
             state: OrchestratorState = {
                 "question": question, "retries": 0,
@@ -272,7 +280,9 @@ class Orchestrator:
             # recursion_limit is a defensive backstop; the retry path is already
             # bounded by MAX_RETRIES via the should_retry signal.
             final_state = await self.graph.ainvoke(state, config={"recursion_limit": 12})
-            return final_state.get("final", {})
+            final = final_state.get("final", {})
+            telemetry.finish_request(final)
+            return final
 
         if stream is not None:
             with use_emitter(stream):

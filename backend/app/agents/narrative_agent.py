@@ -17,6 +17,7 @@ import logging
 import re
 from typing import Any
 
+from app import telemetry
 from app.agents.events import emit_event
 from app.tools.llm import LLMProtocol, stream_or_complete
 
@@ -68,6 +69,7 @@ class NarrativeAgent:
             await emit_event("narrative_agent", "running", "", type="token", delta=narrative)
 
         narrative = narrative.strip()
+        telemetry.record_llm(len(system) + len(user), len(narrative))
         await emit_event(
             "narrative_agent", "complete", "Drafted answer with citations.",
             citations=citations, word_count=len(narrative.split()),

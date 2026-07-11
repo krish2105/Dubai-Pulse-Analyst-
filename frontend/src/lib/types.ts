@@ -51,6 +51,16 @@ export interface FinalAnswer {
   notes: string[];
   retries: number;
   language?: string;
+  blocked?: boolean;
+  request_id?: string;
+  telemetry?: {
+    latency_ms: number;
+    llm_calls: number;
+    est_total_tokens: number;
+    est_cost_usd: number;
+    provider: string;
+    model: string;
+  };
 }
 
 // A chat message in the UI.

@@ -31,5 +31,6 @@ backend/data/processed/_manifest.txt
 
 # ---- Misc ----
 *.log
+backend/logs/
 .coverage
 htmlcov/

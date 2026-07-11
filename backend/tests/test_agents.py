@@ -290,6 +290,21 @@ class TestApi:
         r = self.client.post("/chat", json={"question": "hi"})
         assert r.status_code == 422
 
+    def test_metrics(self):
+        r = self.client.get("/metrics")
+        assert r.status_code == 200 and "requests" in r.json()
+
+    def test_feedback(self):
+        r = self.client.post("/feedback", json={"request_id": "test123", "rating": "up"})
+        assert r.status_code == 200 and r.json()["ok"] is True
+        # invalid rating rejected
+        assert self.client.post("/feedback", json={"request_id": "x", "rating": "meh"}).status_code == 422
+
+    def test_security_headers(self):
+        h = self.client.get("/health").headers
+        assert h.get("x-content-type-options") == "nosniff"
+        assert h.get("x-frame-options") == "DENY"
+
     def test_chat_streams(self):
         # No API key in CI → graceful low-confidence stream, but must be a valid SSE stream.
         with self.client.stream("POST", "/chat", json={"question": "average price per sqft in Palm Jumeirah 2025"}) as s:
