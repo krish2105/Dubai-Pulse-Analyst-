@@ -62,6 +62,8 @@ class OrchestratorState(TypedDict, total=False):
     retries: int
     verifier_feedback: str
     should_retry: bool
+    history: list[dict[str, Any]]
+    language: str
     final: dict[str, Any]
 
 
@@ -102,7 +104,7 @@ class Orchestrator:
 
     # ------------------------------ nodes ----------------------------- #
     async def _query_node(self, state: OrchestratorState) -> dict:
-        query_out = await self.query_agent.run(state["question"])
+        query_out = await self.query_agent.run(state["question"], state.get("history"))
         return {"query_out": query_out}
 
     async def _route_node(self, state: OrchestratorState) -> dict:
@@ -129,7 +131,10 @@ class Orchestrator:
                 f"and DATA provided; drop or qualify any figure not present there.]"
             )
         analysis = state.get("analysis", {"facts": [], "notes": []})
-        out = await self.narrative_agent.run(question, state["query_out"], analysis)
+        out = await self.narrative_agent.run(
+            question, state["query_out"], analysis,
+            language=state.get("language", "en"), history=state.get("history"),
+        )
         return {"narrative": out["narrative"], "citations": out["citations"]}
 
     async def _verify_node(self, state: OrchestratorState) -> dict:
@@ -170,6 +175,7 @@ class Orchestrator:
             "ranking": analysis.get("ranking"),
             "notes": analysis.get("notes", []),
             "retries": state.get("retries", 0),
+            "language": state.get("language", "en"),
         }
         await emit_event(
             "orchestrator", "complete", "Answer finalised.",
@@ -201,11 +207,26 @@ class Orchestrator:
         return "simple"
 
     # ------------------------------ run ------------------------------- #
-    async def run(self, question: str, stream: AgentEventStream | None = None) -> dict:
+    @staticmethod
+    def _resolve_language(question: str, language: str) -> str:
+        if language in ("en", "ar"):
+            return language
+        # auto: detect Arabic script in the question
+        if any("؀" <= ch <= "ۿ" for ch in question):
+            return "ar"
+        return "en"
+
+    async def run(self, question: str, stream: AgentEventStream | None = None,
+                  history: list | None = None, language: str = "auto") -> dict:
         """Run the full graph. If a stream is given, agent events are emitted to it."""
+        resolved_language = self._resolve_language(question, language)
+
         async def _invoke() -> dict:
             await emit_event("orchestrator", "running", "Received question — planning the investigation…")
-            state: OrchestratorState = {"question": question, "retries": 0}
+            state: OrchestratorState = {
+                "question": question, "retries": 0,
+                "history": history or [], "language": resolved_language,
+            }
             # recursion_limit is a defensive backstop; the retry path is already
             # bounded by MAX_RETRIES via the should_retry signal.
             final_state = await self.graph.ainvoke(state, config={"recursion_limit": 12})

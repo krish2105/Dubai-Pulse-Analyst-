@@ -14,20 +14,20 @@ const fmt = (n: number) => new Intl.NumberFormat("en-US").format(n);
 
 function StatCard({ icon: Icon, label, value, sub }: any) {
   return (
-    <div className="rounded-xl border border-ink-600 bg-ink-800/60 p-3">
-      <div className="flex items-center gap-1.5 text-[11px] uppercase tracking-wide text-slate-500">
-        <Icon className="h-3.5 w-3.5 text-brand-400" /> {label}
+    <div className="rounded-xl border border-line bg-surface/60 p-3">
+      <div className="flex items-center gap-1.5 text-[11px] uppercase tracking-wide text-faint">
+        <Icon className="h-3.5 w-3.5 text-accent-blue" /> {label}
       </div>
-      <div className="mt-1 text-xl font-semibold text-white">{value}</div>
-      {sub && <div className="text-[11px] text-slate-500">{sub}</div>}
+      <div className="mt-1 text-xl font-semibold text-bright">{value}</div>
+      {sub && <div className="text-[11px] text-faint">{sub}</div>}
     </div>
   );
 }
 
 function ChartCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-xl border border-ink-600 bg-ink-800/60 p-3">
-      <div className="mb-2 text-xs font-medium text-slate-300">{title}</div>
+    <div className="rounded-xl border border-line bg-surface/60 p-3">
+      <div className="mb-2 text-xs font-medium text-content">{title}</div>
       <div className="h-40">
         <ResponsiveContainer width="100%" height="100%">{children as any}</ResponsiveContainer>
       </div>
@@ -47,7 +47,7 @@ export default function KpiDashboard() {
   });
 
   if (isLoading) {
-    return <div className="p-4 text-sm text-slate-500">Loading market overview…</div>;
+    return <div className="p-4 text-sm text-faint">Loading market overview…</div>;
   }
   if (isError || !data) {
     return <div className="p-4 text-sm text-rose-300">Could not load market overview. Is the backend running?</div>;
@@ -58,8 +58,8 @@ export default function KpiDashboard() {
   return (
     <div className="space-y-3 p-4">
       <div>
-        <h3 className="text-sm font-semibold text-white">Market overview</h3>
-        <p className="text-[11px] text-slate-500">
+        <h3 className="text-sm font-semibold text-bright">Market overview</h3>
+        <p className="text-[11px] text-faint">
           {fmt(h.total_listings)} listings · {h.communities} communities · {h.zones} zones ·{" "}
           {h.start_date?.slice(0, 7)} → {h.end_date?.slice(0, 7)}
         </p>
@@ -85,25 +85,25 @@ export default function KpiDashboard() {
               <stop offset="100%" stopColor="#e0a92e" stopOpacity={0} />
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="#1e263c" />
+          <CartesianGrid strokeDasharray="3 3" stroke="#94a3b833" />
           <XAxis dataKey="year_month" tick={{ fontSize: 9, fill: "#64748b" }} interval={11} />
           <YAxis yAxisId="l" tick={{ fontSize: 9, fill: "#64748b" }} />
           <YAxis yAxisId="r" orientation="right" tick={{ fontSize: 9, fill: "#64748b" }} width={26} />
           <Tooltip {...tooltipStyle} />
-          <Area yAxisId="l" type="monotone" dataKey="price_per_sqft" stroke="#e0a92e" fill="url(#ppsf)" strokeWidth={2} name="Price/sqft" />
-          <Line yAxisId="r" type="monotone" dataKey="base_rate" stroke="#2f7bff" strokeWidth={1.5} dot={false} name="Base rate %" />
+          <Area isAnimationActive={false} yAxisId="l" type="monotone" dataKey="price_per_sqft" stroke="#e0a92e" fill="url(#ppsf)" strokeWidth={2} name="Price/sqft" />
+          <Line isAnimationActive={false} yAxisId="r" type="monotone" dataKey="base_rate" stroke="#2f7bff" strokeWidth={1.5} dot={false} name="Base rate %" />
         </AreaChart>
       </ChartCard>
 
       <ChartCard title="Transaction volume by year">
         <BarChart data={data.volume_by_year} margin={{ top: 4, right: 6, left: -18, bottom: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#1e263c" />
+          <CartesianGrid strokeDasharray="3 3" stroke="#94a3b833" />
           <XAxis dataKey="year" tick={{ fontSize: 9, fill: "#64748b" }} />
           <YAxis tick={{ fontSize: 9, fill: "#64748b" }} />
           <Tooltip {...tooltipStyle} />
-          <Bar dataKey="secondary" stackId="a" fill="#2f7bff" name="Secondary" />
-          <Bar dataKey="offplan" stackId="a" fill="#e0a92e" name="Off-plan" />
-          <Bar dataKey="rental" stackId="a" fill="#22d3ee" name="Rental" radius={[2, 2, 0, 0]} />
+          <Bar isAnimationActive={false} dataKey="secondary" stackId="a" fill="#2f7bff" name="Secondary" />
+          <Bar isAnimationActive={false} dataKey="offplan" stackId="a" fill="#e0a92e" name="Off-plan" />
+          <Bar isAnimationActive={false} dataKey="rental" stackId="a" fill="#22d3ee" name="Rental" radius={[2, 2, 0, 0]} />
         </BarChart>
       </ChartCard>
 
@@ -112,7 +112,7 @@ export default function KpiDashboard() {
           <XAxis type="number" tick={{ fontSize: 9, fill: "#64748b" }} />
           <YAxis type="category" dataKey="zone" tick={{ fontSize: 9, fill: "#94a3b8" }} width={80} />
           <Tooltip {...tooltipStyle} />
-          <Bar dataKey="price_per_sqft" fill="#e0a92e" radius={[0, 3, 3, 0]} name="USD/sqft" />
+          <Bar isAnimationActive={false} dataKey="price_per_sqft" fill="#e0a92e" radius={[0, 3, 3, 0]} name="USD/sqft" />
         </BarChart>
       </ChartCard>
 
@@ -121,7 +121,7 @@ export default function KpiDashboard() {
           <XAxis type="number" tick={{ fontSize: 9, fill: "#64748b" }} />
           <YAxis type="category" dataKey="community" tick={{ fontSize: 9, fill: "#94a3b8" }} width={80} />
           <Tooltip {...tooltipStyle} />
-          <Bar dataKey="yield_pct" fill="#22d3ee" radius={[0, 3, 3, 0]} name="Yield %" />
+          <Bar isAnimationActive={false} dataKey="yield_pct" fill="#22d3ee" radius={[0, 3, 3, 0]} name="Yield %" />
         </BarChart>
       </ChartCard>
     </div>

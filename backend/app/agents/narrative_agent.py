@@ -18,7 +18,7 @@ import re
 from typing import Any
 
 from app.agents.events import emit_event
-from app.tools.llm import LLMProtocol
+from app.tools.llm import LLMProtocol, stream_or_complete
 
 logger = logging.getLogger("dubaipulse.narrative_agent")
 
@@ -41,7 +41,8 @@ class NarrativeAgent:
     def __init__(self, llm: LLMProtocol) -> None:
         self.llm = llm
 
-    async def run(self, question: str, query_out: dict, analysis: dict) -> dict:
+    async def run(self, question: str, query_out: dict, analysis: dict,
+                  language: str = "en", history: list | None = None) -> dict:
         await emit_event("narrative_agent", "running", "Composing the executive answer…")
 
         result = query_out.get("result", {})
@@ -49,27 +50,55 @@ class NarrativeAgent:
         notes = analysis.get("notes", [])
         citations = self._citations(query_out, result)
 
-        user = self._build_prompt(question, facts, result, notes, query_out.get("filters_summary", ""))
+        system = self._system_for(language)
+        user = self._build_prompt(
+            question, facts, result, notes, query_out.get("filters_summary", ""), history
+        )
+
+        # Stream tokens as they arrive (falls back to a single call for stubs /
+        # non-streaming providers). The frontend renders them live.
+        narrative = ""
         try:
-            narrative = await self.llm.complete(system=_SYSTEM, user=user)
+            async for delta in stream_or_complete(self.llm, system, user):
+                narrative += delta
+                await emit_event("narrative_agent", "running", "", type="token", delta=delta)
         except Exception as exc:
             logger.warning("Narrative generation failed: %s", exc)
             narrative = self._fallback(facts, citations)
+            await emit_event("narrative_agent", "running", "", type="token", delta=narrative)
 
+        narrative = narrative.strip()
         await emit_event(
             "narrative_agent", "complete", "Drafted answer with citations.",
             citations=citations, word_count=len(narrative.split()),
         )
-        return {"narrative": narrative.strip(), "citations": citations}
+        return {"narrative": narrative, "citations": citations}
 
     # ------------------------------------------------------------------ #
-    def _build_prompt(self, question, facts, result, notes, filters_summary) -> str:
+    @staticmethod
+    def _system_for(language: str) -> str:
+        if language == "ar":
+            return (
+                _SYSTEM
+                + "\n\nIMPORTANT: Write your ENTIRE answer in Arabic (العربية), in natural fluent"
+                " Modern Standard Arabic. Keep place names recognisable and all numbers exact."
+            )
+        return _SYSTEM
+
+    def _build_prompt(self, question, facts, result, notes, filters_summary, history=None) -> str:
         preview = result.get("rows", [])[:15]
         cols = result.get("columns", [])
         facts_block = "\n".join(f"- {f}" for f in facts) if facts else "- (no derived facts)"
         data_block = self._table_md(cols, preview)
         caveats = "\n".join(f"- {n}" for n in notes) if notes else "- (none)"
+        hist_block = ""
+        if history:
+            turns = [t for t in history if t.get("content")][-4:]
+            if turns:
+                lines = "\n".join(f"{t.get('role', 'user')}: {t.get('content', '')}" for t in turns)
+                hist_block = f"CONVERSATION SO FAR (for context/continuity):\n{lines}\n\n"
         return (
+            f"{hist_block}"
             f"QUESTION:\n{question}\n\n"
             f"FILTERS APPLIED: {filters_summary or '(see data)'}\n\n"
             f"FACTS (deterministically computed — safe to cite verbatim):\n{facts_block}\n\n"

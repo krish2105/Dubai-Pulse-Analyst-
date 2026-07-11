@@ -3,18 +3,52 @@
 @tailwind utilities;
 
 @layer base {
+  /* Light theme (default) */
+  :root {
+    --page: 244 246 251;      /* soft off-white */
+    --surface: 255 255 255;
+    --surface-2: 238 241 247;
+    --elevated: 226 231 240;
+    --line: 223 227 236;
+    --line-strong: 195 202 216;
+    --content: 31 41 55;      /* slate-800 */
+    --muted: 85 96 116;
+    --faint: 138 148 166;
+    --bright: 11 18 32;       /* near-black headings */
+    --accent-gold: 199 143 26;   /* gold-600 (readable on light) */
+    --accent-blue: 31 95 224;    /* brand-600 */
+    --chart-grid: 226 231 240;
+  }
+
+  /* Dark theme */
+  .dark {
+    --page: 10 14 26;         /* ink-900 */
+    --surface: 15 21 36;      /* ink-800 */
+    --surface-2: 22 29 48;    /* ink-700 */
+    --elevated: 30 38 60;     /* ink-600 */
+    --line: 30 38 60;
+    --line-strong: 42 52 80;  /* ink-500 */
+    --content: 226 232 240;   /* slate-200 */
+    --muted: 148 163 184;     /* slate-400 */
+    --faint: 100 116 139;     /* slate-500 */
+    --bright: 255 255 255;
+    --accent-gold: 245 196 81;   /* gold-400 */
+    --accent-blue: 91 155 255;   /* brand-400 */
+    --chart-grid: 30 38 60;
+  }
+
   html {
     font-family: Inter, ui-sans-serif, system-ui, sans-serif;
   }
   body {
-    @apply bg-ink-900 text-slate-200 antialiased;
+    @apply bg-page text-content antialiased;
   }
   ::-webkit-scrollbar {
     width: 10px;
     height: 10px;
   }
   ::-webkit-scrollbar-thumb {
-    @apply bg-ink-500 rounded-full;
+    @apply bg-line-strong rounded-full;
   }
   ::-webkit-scrollbar-track {
     @apply bg-transparent;
@@ -22,12 +56,20 @@
 }
 
 @layer components {
+  /* Theme-aware accent helpers for text sitting on plain backgrounds */
+  .text-accent-gold {
+    color: rgb(var(--accent-gold));
+  }
+  .text-accent-blue {
+    color: rgb(var(--accent-blue));
+  }
+
   /* Markdown answer styling */
   .prose-answer p {
     @apply mb-2 leading-relaxed;
   }
   .prose-answer strong {
-    @apply text-white font-semibold;
+    @apply text-bright font-semibold;
   }
   .prose-answer ul {
     @apply list-disc pl-5 mb-2 space-y-1;
@@ -36,6 +78,10 @@
     @apply leading-relaxed;
   }
   .prose-answer code {
-    @apply bg-ink-700 px-1.5 py-0.5 rounded text-gold-400 text-sm font-mono;
+    @apply bg-surface2 px-1.5 py-0.5 rounded text-accent-gold text-sm font-mono;
+  }
+  /* RTL support for Arabic answers */
+  .prose-answer[dir="rtl"] {
+    text-align: right;
   }
 }

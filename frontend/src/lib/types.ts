@@ -10,7 +10,7 @@ export type AgentName =
 export type StepStatus = "running" | "complete" | "skipped" | "error";
 
 export interface AgentEvent {
-  type: "agent_step" | "final" | "error" | "done";
+  type: "agent_step" | "final" | "error" | "done" | "token";
   agent: AgentName | string;
   status: StepStatus;
   detail: string;
@@ -50,6 +50,7 @@ export interface FinalAnswer {
   ranking: any | null;
   notes: string[];
   retries: number;
+  language?: string;
 }
 
 // A chat message in the UI.
@@ -61,6 +62,7 @@ export interface ChatMessage {
   final?: FinalAnswer;
   error?: string;
   streaming: boolean;
+  language?: string;
 }
 
 // /insights payload

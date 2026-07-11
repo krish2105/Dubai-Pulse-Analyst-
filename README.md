@@ -51,6 +51,24 @@ It's a portfolio project designed to demonstrate real *production instincts* for
 | 🔎 **Grounded citations** | Each answer carries row count, date range, filters, tables and the exact SQL that produced it. |
 | ⚠️ **Honest low-confidence flag** | If the numbers can't be confirmed, the answer is visibly flagged — never silently presented as fact. |
 | 🧾 **Safe NL→SQL** | The LLM proposes SQL; a deterministic engine enforces read-only, single-statement, row-capped execution. |
+| ⌨️ **Token-streamed answers** | The narrative types out live, token-by-token, over SSE. |
+| 📊 **Inline answer charts** | Trend / ranking answers render a chart in the bubble, straight from the Analysis Agent's data. |
+| 💬 **Multi-turn follow-ups** | Ask "what about villas?" and it resolves against the prior turn. |
+| 🌍 **Bilingual (EN / العربية)** | Answer in English or Arabic (with RTL); Arabic questions auto-detected. |
+| 🌗 **Light & dark themes** | Polished, fully theme-aware UI with a one-click toggle (and `?theme=` deep-link). |
+| 🆓 **Free & pluggable LLM** | Runs on local **Ollama** with no API key/cost; swap to Groq/Gemini/OpenAI/Claude via one env var. |
+
+---
+
+## Screenshots
+
+**Light mode — market overview & dashboard**
+
+![Light mode](docs/screenshot_light.png)
+
+**Dark mode — live reasoning trace + verified answer**
+
+![Reasoning trace](docs/screenshot_trace.png)
 
 ---
 
@@ -208,6 +226,19 @@ When a figure can't be confirmed, the answer is regenerated once, then shown wit
 We evaluate **behaviour and grounding**, not exact wording (LLM phrasing varies). Each benchmark
 question is scored on five criteria — *Grounded, Routed correctly, Cited, Honest, Confidence-flagged* —
 with **Grounded mandatory** (see the rubric in [`evaluation/eval_questions.md`](evaluation/eval_questions.md)).
+
+**Benchmark run** (`python evaluation/run_eval.py`, on the free local Ollama model — see
+[`evaluation/eval_report.md`](evaluation/eval_report.md)):
+
+| Metric | Result |
+|--------|--------|
+| Pass rate (grounded + cited) | **7 / 8 (87.5%)** |
+| Routing accuracy | **8 / 8 (100%)** |
+| Verifier-confirmed | **7 / 8** |
+
+The one miss (a base-rate ↔ price-growth correlation) was correctly **flagged low-confidence**
+rather than answered with fabricated numbers — the guardrail doing its job. Results improve further
+with a stronger model (Groq `llama-3.3-70b` / Claude).
 
 Automated tests (`backend/tests/test_agents.py`, **26 passing**) assert:
 

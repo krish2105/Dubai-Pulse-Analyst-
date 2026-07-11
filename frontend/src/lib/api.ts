@@ -23,15 +23,21 @@ export async function fetchInsights(): Promise<Insights> {
  * Calls `onEvent` for each parsed event. Returns when the stream ends.
  * Pass an AbortController signal to cancel.
  */
+export interface ChatPayload {
+  question: string;
+  history?: { role: string; content: string }[];
+  language?: string; // 'auto' | 'en' | 'ar'
+}
+
 export async function streamChat(
-  question: string,
+  payload: ChatPayload,
   onEvent: (event: AgentEvent) => void,
   signal?: AbortSignal,
 ): Promise<void> {
   const res = await fetch(`${BASE_URL}/chat`, {
     method: "POST",
     headers: headers({ "Content-Type": "application/json", Accept: "text/event-stream" }),
-    body: JSON.stringify({ question }),
+    body: JSON.stringify(payload),
     signal,
   });
 

@@ -101,6 +101,44 @@ class OpenAICompatibleClient:
             raise LLMError("LLM returned an empty response.")
         return text
 
+    async def stream_complete(self, system, user, *, model=None, max_tokens=None,
+                              temperature=None, json_mode=False):
+        """Yield text deltas as they arrive (OpenAI-compatible SSE stream)."""
+        payload: dict[str, Any] = {
+            "model": model or self.model,
+            "messages": [
+                {"role": "system", "content": system},
+                {"role": "user", "content": user},
+            ],
+            "temperature": self.settings.llm_temperature if temperature is None else temperature,
+            "max_tokens": max_tokens or self.settings.llm_max_tokens,
+            "stream": True,
+        }
+        headers = {"Content-Type": "application/json"}
+        if self.api_key:
+            headers["Authorization"] = f"Bearer {self.api_key}"
+        try:
+            async with httpx.AsyncClient(timeout=self.settings.llm_timeout) as client:
+                async with client.stream(
+                    "POST", f"{self.base_url}/chat/completions", json=payload, headers=headers
+                ) as resp:
+                    resp.raise_for_status()
+                    async for line in resp.aiter_lines():
+                        if not line or not line.startswith("data:"):
+                            continue
+                        chunk = line[5:].strip()
+                        if chunk == "[DONE]":
+                            break
+                        try:
+                            obj = json.loads(chunk)
+                            delta = obj["choices"][0]["delta"].get("content")
+                        except (json.JSONDecodeError, KeyError, IndexError, TypeError):
+                            continue
+                        if delta:
+                            yield delta
+        except httpx.HTTPError as exc:
+            raise LLMError(f"LLM streaming failed: {exc}") from exc
+
 
 # --------------------------------------------------------------------------- #
 # Gemini client (native REST, free tier)
@@ -218,6 +256,20 @@ def build_llm(settings: Settings | None = None) -> LLMProtocol:
 # Back-compat alias (older imports used LLMClient()).
 def LLMClient(settings: Settings | None = None) -> LLMProtocol:  # noqa: N802
     return build_llm(settings)
+
+
+async def stream_or_complete(llm: Any, system: str, user: str, **kw):
+    """Yield text deltas if the client supports streaming, else yield once.
+
+    Test stubs (and Gemini/Anthropic here) have no ``stream_complete`` → we fall
+    back to a single ``complete()`` call, so callers can always ``async for``.
+    """
+    fn = getattr(llm, "stream_complete", None)
+    if fn is not None:
+        async for chunk in fn(system, user, **kw):
+            yield chunk
+    else:
+        yield await llm.complete(system, user, **kw)
 
 
 # --------------------------------------------------------------------------- #

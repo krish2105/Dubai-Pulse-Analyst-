@@ -44,8 +44,15 @@ def get_orchestrator() -> Orchestrator:
     return _orchestrator
 
 
+class Turn(BaseModel):
+    role: str
+    content: str
+
+
 class ChatRequest(BaseModel):
     question: str = Field(..., min_length=3, max_length=500)
+    history: list[Turn] = Field(default_factory=list, max_length=20)
+    language: str = Field(default="auto")  # 'auto' | 'en' | 'ar'
 
 
 def _sse(event: AgentEvent) -> dict:
@@ -56,7 +63,9 @@ def _sse(event: AgentEvent) -> dict:
 @limiter.limit(get_settings().rate_limit)
 async def chat(request: Request, body: ChatRequest):
     question = body.question.strip()
-    logger.info("Chat question: %s", question)
+    history = [t.model_dump() for t in body.history]
+    language = body.language
+    logger.info("Chat question (lang=%s, %d prior turns): %s", language, len(history), question)
     orchestrator = get_orchestrator()
 
     async def event_generator():
@@ -64,7 +73,7 @@ async def chat(request: Request, body: ChatRequest):
 
         async def run_and_close():
             try:
-                await orchestrator.run(question, stream)
+                await orchestrator.run(question, stream, history=history, language=language)
             except Exception as exc:  # never leak a stack trace to the client
                 logger.exception("Orchestrator failed")
                 await stream.emit(

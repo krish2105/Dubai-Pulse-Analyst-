@@ -63,11 +63,12 @@ class QueryAgent:
         self.llm = llm
         self.engine = engine or get_engine()
 
-    async def run(self, question: str) -> dict:
+    async def run(self, question: str, history: list | None = None) -> dict:
         """Return {sql, rationale, filters_summary, tables, result: QueryResult.to_dict()}."""
         await emit_event("query_agent", "running", "Translating question into SQL…")
 
         system = _SYSTEM_TEMPLATE.format(schema=self.engine.get_schema_prompt())
+        question = self._contextualize(question, history)
         proposal = await self._propose(system, question)
         sql = proposal.get("sql", "")
         result = self.engine.run_query(sql)
@@ -113,6 +114,18 @@ class QueryAgent:
             "tables": proposal.get("tables", []),
             "result": result.to_dict(),
         }
+
+    @staticmethod
+    def _contextualize(question: str, history: list | None) -> str:
+        """Fold recent user turns into the question so follow-ups resolve
+        (e.g. 'what about villas?' after a price question)."""
+        if not history:
+            return question
+        prior = [t.get("content", "") for t in history if t.get("role") == "user" and t.get("content")]
+        prior = prior[-2:]
+        if not prior:
+            return question
+        return f"(Earlier questions for context: {' | '.join(prior)})\nCurrent question: {question}"
 
     async def _propose(self, system: str, user: str) -> dict:
         """Ask the LLM for a SQL proposal (JSON). Falls back gracefully."""
