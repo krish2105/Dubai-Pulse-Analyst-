@@ -1,6 +1,6 @@
-# Render Blueprint — one-click backend deploy.
-# In Render: New > Blueprint > point at this repo. Then set the secret env vars
-# (ANTHROPIC_API_KEY, BACKEND_API_KEY, CORS_ORIGINS) in the dashboard.
+# Render Blueprint — one-click backend deploy (free LLM via Groq).
+# In Render: New > Blueprint > point at this repo. Then set the ONE secret
+# env var (GROQ_API_KEY) in the dashboard when prompted.
 services:
   - type: web
     name: dubaipulse-backend
@@ -13,13 +13,15 @@ services:
     healthCheckPath: /health
     autoDeploy: true
     envVars:
-      - key: ANTHROPIC_API_KEY
-        sync: false            # set in dashboard (secret)
-      - key: BACKEND_API_KEY
-        sync: false            # set in dashboard (secret)
+      - key: LLM_PROVIDER
+        value: groq
+      - key: GROQ_API_KEY
+        sync: false            # ← set in dashboard (free key: console.groq.com/keys)
+      - key: LLM_MODEL
+        value: llama-3.3-70b-versatile
       - key: CORS_ORIGINS
-        sync: false            # e.g. https://your-frontend.vercel.app
-      - key: ANTHROPIC_MODEL
-        value: claude-sonnet-5
+        value: "*"             # public demo; API is rate-limited
+      - key: RATE_LIMIT
+        value: 30/minute
       - key: APP_ENV
         value: production
