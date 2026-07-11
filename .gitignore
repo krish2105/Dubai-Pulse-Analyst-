@@ -1,0 +1,35 @@
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# ---- Node / frontend ----
+node_modules/
+frontend/dist/
+frontend/.vite/
+*.tsbuildinfo
+
+# ---- Env / secrets (NEVER commit) ----
+.env
+.env.*
+!.env.example
+frontend/.env.local
+
+# ---- OS / editor ----
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# ---- Data pipeline artefacts (keep raw + processed data committed) ----
+backend/data/processed/_manifest.txt
+
+# ---- Misc ----
+*.log
+.coverage
+htmlcov/

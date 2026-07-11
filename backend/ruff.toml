@@ -1,0 +1,14 @@
+# Ruff configuration for the DubaiPulse backend.
+line-length = 110
+target-version = "py311"
+
+[lint]
+select = ["E", "F", "W", "I", "UP", "B"]
+ignore = [
+    "E501",  # long lines (schema prompts, docstrings)
+    "E702",  # multiple statements on one line (compact test teardown)
+    "B008",  # function call in argument defaults (FastAPI Depends pattern)
+]
+
+[lint.per-file-ignores]
+"tests/*" = ["E402", "F841"]

@@ -1,0 +1,41 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  }
+  body {
+    @apply bg-ink-900 text-slate-200 antialiased;
+  }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-ink-500 rounded-full;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+}
+
+@layer components {
+  /* Markdown answer styling */
+  .prose-answer p {
+    @apply mb-2 leading-relaxed;
+  }
+  .prose-answer strong {
+    @apply text-white font-semibold;
+  }
+  .prose-answer ul {
+    @apply list-disc pl-5 mb-2 space-y-1;
+  }
+  .prose-answer li {
+    @apply leading-relaxed;
+  }
+  .prose-answer code {
+    @apply bg-ink-700 px-1.5 py-0.5 rounded text-gold-400 text-sm font-mono;
+  }
+}

@@ -1,0 +1,23 @@
+# Local development stack. The frontend runs separately via `npm run dev`
+# (Vite proxies /chat, /insights, /health to this backend).
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: dubaipulse-backend
+    ports:
+      - "8000:8000"
+    environment:
+      # Pass your key through from the host shell or an .env file next to this compose file.
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - ANTHROPIC_MODEL=${ANTHROPIC_MODEL:-claude-sonnet-5}
+      - BACKEND_API_KEY=${BACKEND_API_KEY:-}
+      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:5173}
+      - APP_ENV=development
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/health').status==200 else 1)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
