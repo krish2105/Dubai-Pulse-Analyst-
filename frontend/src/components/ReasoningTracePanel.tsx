@@ -5,7 +5,7 @@
 import { useState } from "react";
 import {
   ChevronDown, ChevronRight, Database, LineChart, PenLine, ShieldCheck, ShieldAlert,
-  Workflow, CheckCircle2, Loader2, XCircle, MinusCircle,
+  Workflow, CheckCircle2, Loader2, XCircle, MinusCircle, BookOpen,
 } from "lucide-react";
 import type { AgentEvent } from "../lib/types";
 
@@ -14,6 +14,7 @@ const AGENT_META: Record<string, { label: string; icon: any; color: string }> = 
   orchestrator: { label: "Orchestrator", icon: Workflow, color: "text-accent-blue" },
   query_agent: { label: "Query Agent", icon: Database, color: "text-emerald-400" },
   analysis_agent: { label: "Analysis Agent", icon: LineChart, color: "text-accent-gold" },
+  context_agent: { label: "Context (RAG)", icon: BookOpen, color: "text-indigo-400" },
   narrative_agent: { label: "Narrative Agent", icon: PenLine, color: "text-purple-400" },
   verifier: { label: "Verifier", icon: ShieldCheck, color: "text-cyan-400" },
 };
@@ -43,6 +44,16 @@ function StepDetail({ event }: { event: AgentEvent }) {
       {Array.isArray(d.facts) && d.facts.length > 0 && (
         <ul className="list-disc pl-4 space-y-0.5">
           {d.facts.slice(0, 5).map((f: string, i: number) => <li key={i}>{f}</li>)}
+        </ul>
+      )}
+      {Array.isArray(d.events) && d.events.length > 0 && (
+        <ul className="space-y-0.5">
+          {d.events.map((e: any, i: number) => (
+            <li key={i}>
+              📎 <span className="text-content">{e.date} · {e.title}</span>
+              <span className="opacity-70"> — {e.source}</span>
+            </li>
+          ))}
         </ul>
       )}
       {typeof d.numbers_checked === "number" && (
@@ -104,6 +115,7 @@ export default function ReasoningTracePanel({
               event.data &&
               (event.data.sql || event.data.row_count !== undefined ||
                 (event.data.facts && event.data.facts.length) ||
+                (event.data.events && event.data.events.length) ||
                 event.data.numbers_checked !== undefined);
             return (
               <div key={i} className="animate-fade-in">

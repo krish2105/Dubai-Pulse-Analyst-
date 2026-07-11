@@ -1,0 +1,74 @@
+[
+  {
+    "id": "covid-2020",
+    "date": "2020-03",
+    "title": "COVID-19 lockdown",
+    "description": "Dubai imposed movement restrictions in March–April 2020. Transaction volumes and prices dipped sharply as viewings and mortgages slowed, marking the low point of the cycle before the recovery.",
+    "tags": ["covid", "2020", "dip", "decline", "volume", "lockdown", "pandemic"],
+    "source": "Dubai Land Department (DLD)"
+  },
+  {
+    "id": "foreign-ownership-2020",
+    "date": "2020-11",
+    "title": "100% foreign business ownership",
+    "description": "The UAE amended its Commercial Companies Law to allow 100% foreign ownership of onshore companies, boosting investor and expat confidence and supporting later property demand.",
+    "tags": ["ownership", "foreign", "investor", "policy", "2020"],
+    "source": "UAE Government (u.ae)"
+  },
+  {
+    "id": "expo-2020",
+    "date": "2021-10",
+    "title": "Expo 2020 Dubai opens",
+    "description": "Expo 2020 (held Oct 2021–Mar 2022 after a COVID delay) drew millions of visitors and global attention, fuelling an anticipation rally in transactions and off-plan launches around Dubai South and the wider market.",
+    "tags": ["expo", "2021", "2022", "rally", "off-plan", "offplan", "volume", "tourism", "growth"],
+    "source": "Expo 2020 Dubai / DLD"
+  },
+  {
+    "id": "capital-inflows-2022",
+    "date": "2022-03",
+    "title": "Post-2022 capital inflows",
+    "description": "Following geopolitical events in early 2022, Dubai saw significant capital and buyer inflows (notably from Russia/CIS and Europe) seeking a safe-haven property market, driving prices and prime-segment demand higher.",
+    "tags": ["inflows", "capital", "2022", "russia", "cis", "demand", "growth", "prime", "rally"],
+    "source": "Property Finder / market commentary"
+  },
+  {
+    "id": "cbuae-hikes-2022",
+    "date": "2022-03",
+    "title": "CBUAE base rate hikes begin",
+    "description": "The Central Bank of the UAE raised its base rate in lockstep with US Federal Reserve hikes through 2022–2023 (the dirham is pegged to the dollar). Mortgage rates rose accordingly, cooling leveraged demand even as cash buyers stayed active.",
+    "tags": ["cbuae", "base rate", "interest", "mortgage", "2022", "2023", "rate", "hike", "cooling", "correlation"],
+    "source": "Central Bank of the UAE (centralbank.ae)"
+  },
+  {
+    "id": "golden-visa-2022",
+    "date": "2022-10",
+    "title": "Golden Visa expansion",
+    "description": "In October 2022 the UAE expanded the 10-year Golden Visa: the property investment threshold was set at AED 2 million and rules were relaxed (including off-plan and mortgaged properties). This directly boosted investor demand in the qualifying price segments.",
+    "tags": ["golden visa", "visa", "2022", "investor", "demand", "policy", "offplan", "off-plan", "spike", "growth"],
+    "source": "UAE Government (u.ae)"
+  },
+  {
+    "id": "population-growth-2023",
+    "date": "2023-01",
+    "title": "Record population & migration",
+    "description": "Dubai's population and inbound migration hit record highs in 2023–2024, supported by business-friendly reforms and lifestyle appeal, sustaining rental demand and underpinning prices even as sales growth moderated.",
+    "tags": ["population", "migration", "rental", "demand", "2023", "2024", "rent", "yield"],
+    "source": "Dubai Statistics Center"
+  },
+  {
+    "id": "cooling-2024",
+    "date": "2024-01",
+    "title": "Post-rally cooling & rising supply",
+    "description": "After the 2022–2023 rally, price growth moderated in 2024–2025 as a large pipeline of off-plan handovers increased supply and higher mortgage rates tempered leveraged buyers. Prime areas held up better than mid-market.",
+    "tags": ["cooling", "2024", "2025", "supply", "handover", "moderation", "decline", "slowdown"],
+    "source": "Property market reports / DLD"
+  },
+  {
+    "id": "rate-cuts-2024",
+    "date": "2024-09",
+    "title": "Rate cuts begin",
+    "description": "As the US Fed began cutting rates in late 2024, the CBUAE followed, gradually easing mortgage costs and supporting a renewed pickup in leveraged demand into 2025.",
+    "tags": ["rate", "cut", "cbuae", "2024", "2025", "mortgage", "recovery", "demand"],
+    "source": "Central Bank of the UAE (centralbank.ae)"
+  }
+]

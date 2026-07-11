@@ -1,11 +1,22 @@
 // Shared types mirroring the backend SSE + REST contracts.
 
 export type AgentName =
+  | "guardrail"
   | "orchestrator"
   | "query_agent"
   | "analysis_agent"
+  | "context_agent"
   | "narrative_agent"
   | "verifier";
+
+export interface MarketEvent {
+  id: string;
+  date: string;
+  title: string;
+  description: string;
+  source: string;
+  score?: number;
+}
 
 export type StepStatus = "running" | "complete" | "skipped" | "error";
 
@@ -52,6 +63,7 @@ export interface FinalAnswer {
   retries: number;
   language?: string;
   blocked?: boolean;
+  context_sources?: MarketEvent[];
   request_id?: string;
   telemetry?: {
     latency_ms: number;
@@ -102,6 +114,14 @@ export interface GeoPoint {
   n_secondary: number;
   yield_pct: number | null;
   dist_km: number | null;
+}
+
+export interface Forecast {
+  label: string;
+  method: string;
+  trend_per_month: number;
+  history: { date: string; value: number }[];
+  forecast: { date: string; value: number; lower: number; upper: number }[];
 }
 
 export interface Analytics {

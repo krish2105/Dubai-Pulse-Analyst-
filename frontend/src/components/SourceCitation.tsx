@@ -5,7 +5,7 @@
 import { useState } from "react";
 import {
   AlertTriangle, ShieldCheck, Code2, ChevronDown, ChevronRight, Database,
-  Zap, ThumbsUp, ThumbsDown,
+  Zap, ThumbsUp, ThumbsDown, BookOpen,
 } from "lucide-react";
 import type { FinalAnswer } from "../lib/types";
 import { sendFeedback } from "../lib/api";
@@ -120,6 +120,20 @@ export default function SourceCitation({ final }: { final: FinalAnswer }) {
               <span className="ml-auto opacity-80">{tel.provider} · {tel.model}</span>
             </div>
           )}
+        </div>
+      )}
+
+      {final.context_sources && final.context_sources.length > 0 && (
+        <div className="rounded-lg border border-line bg-surface/40 p-3 text-xs text-muted">
+          <div className="mb-1.5 flex items-center gap-1.5 font-medium text-content">
+            <BookOpen className="h-3.5 w-3.5 text-indigo-400" /> Market context (RAG)
+          </div>
+          {final.context_sources.map((e) => (
+            <div key={e.id}>
+              • <span className="text-content">{e.date} · {e.title}</span>
+              <span className="opacity-70"> — {e.source}</span>
+            </div>
+          ))}
         </div>
       )}
 

@@ -37,6 +37,7 @@ from app.agents.guardrail import InputGuardrail
 from app.agents.narrative_agent import NarrativeAgent
 from app.agents.query_agent import QueryAgent
 from app.agents.verifier import Verifier
+from app.tools.knowledge import get_kb
 from app.tools.llm import LLMClient, LLMProtocol
 
 logger = logging.getLogger("dubaipulse.orchestrator")
@@ -69,6 +70,7 @@ class OrchestratorState(TypedDict, total=False):
     blocked: bool
     block_message: str
     block_category: str
+    context: list[dict[str, Any]]
     final: dict[str, Any]
 
 
@@ -91,6 +93,7 @@ class Orchestrator:
         g.add_node("query", self._query_node)
         g.add_node("planner", self._route_node)
         g.add_node("analyze", self._analysis_node)
+        g.add_node("retrieve", self._context_node)
         g.add_node("compose", self._narrative_node)
         g.add_node("verify", self._verify_node)
         g.add_node("finalize", self._finalize_node)
@@ -105,7 +108,8 @@ class Orchestrator:
             "planner", self._route_selector,
             {"analysis": "analyze", "narrative": "compose"},
         )
-        g.add_edge("analyze", "compose")
+        g.add_edge("analyze", "retrieve")
+        g.add_edge("retrieve", "compose")
         g.add_edge("compose", "verify")
         g.add_conditional_edges(
             "verify", self._verify_selector,
@@ -167,6 +171,16 @@ class Orchestrator:
         analysis = await self.analysis_agent.run(state["question"], state["query_out"]["result"])
         return {"analysis": analysis}
 
+    async def _context_node(self, state: OrchestratorState) -> dict:
+        await emit_event("context_agent", "running", "Retrieving relevant market events…")
+        events = get_kb().retrieve(state["question"], k=3)
+        detail = (
+            f"Found {len(events)} relevant event(s): " + ", ".join(e["title"] for e in events)
+            if events else "No strongly-relevant market events found."
+        )
+        await emit_event("context_agent", "complete", detail, events=events)
+        return {"context": events}
+
     async def _narrative_node(self, state: OrchestratorState) -> dict:
         question = state["question"]
         feedback = state.get("verifier_feedback")
@@ -180,6 +194,7 @@ class Orchestrator:
         out = await self.narrative_agent.run(
             question, state["query_out"], analysis,
             language=state.get("language", "en"), history=state.get("history"),
+            context=state.get("context"),
         )
         return {"narrative": out["narrative"], "citations": out["citations"]}
 
@@ -222,6 +237,7 @@ class Orchestrator:
             "notes": analysis.get("notes", []),
             "retries": state.get("retries", 0),
             "language": state.get("language", "en"),
+            "context_sources": state.get("context", []),
         }
         snap = telemetry.snapshot()
         final["request_id"] = snap.get("request_id", "")

@@ -1,7 +1,7 @@
 // API client: base URL + API-key header, an insights fetch, and a POST-based
 // SSE reader (EventSource can't POST, so we stream the fetch body ourselves).
 
-import type { AgentEvent, Analytics, GeoPoint, Insights } from "./types";
+import type { AgentEvent, Analytics, Forecast, GeoPoint, Insights } from "./types";
 
 const BASE_URL = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
 const API_KEY = import.meta.env.VITE_API_KEY || "";
@@ -27,6 +27,12 @@ export async function fetchGeo(): Promise<GeoPoint[]> {
 export async function fetchAnalytics(): Promise<Analytics> {
   const res = await fetch(`${BASE_URL}/analytics`, { headers: headers() });
   if (!res.ok) throw new Error(`Analytics request failed: ${res.status}`);
+  return res.json();
+}
+
+export async function fetchForecast(horizon = 6): Promise<Forecast> {
+  const res = await fetch(`${BASE_URL}/forecast?horizon=${horizon}`, { headers: headers() });
+  if (!res.ok) throw new Error(`Forecast request failed: ${res.status}`);
   return res.json();
 }
 

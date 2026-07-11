@@ -13,6 +13,7 @@ from fastapi import APIRouter
 
 from app.tools.cache import cached_json
 from app.tools.duckdb_engine import get_engine
+from app.tools.forecast import forecast_series
 
 router = APIRouter(tags=["analytics"])
 
@@ -79,3 +80,31 @@ async def geo() -> list[dict]:
 @router.get("/analytics")
 async def analytics() -> dict:
     return await cached_json("dpa:analytics", _analytics)
+
+
+def _forecast(community: str | None, horizon: int) -> dict:
+    e = get_engine()
+    # Validate community against the known set to keep the SQL safe.
+    valid = set(e.get_distinct_sample("area_monthly", "community", limit=200))
+    where = ""
+    label = "Dubai market"
+    if community and community in valid:
+        where = f"WHERE community = '{community.replace(chr(39), '')}'"
+        label = community
+    rows = e.run_query(
+        f"SELECT year_month, ROUND(AVG(secondary_price_per_sqft_usd)) AS v "
+        f"FROM area_monthly {where} GROUP BY year_month ORDER BY year_month"
+    ).rows
+    months = [r["year_month"] for r in rows]
+    values = [r["v"] for r in rows if r["v"] is not None]
+    result = forecast_series(months, values, horizon=horizon)
+    result["label"] = label
+    return result
+
+
+@router.get("/forecast")
+async def forecast(community: str | None = None, horizon: int = 6) -> dict:
+    """Price/sqft forecast (linear trend + monthly seasonality + ±2σ band)."""
+    horizon = max(1, min(12, horizon))
+    key = f"dpa:forecast:{community or 'market'}:{horizon}"
+    return await cached_json(key, lambda: _forecast(community, horizon))

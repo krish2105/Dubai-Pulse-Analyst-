@@ -43,7 +43,8 @@ class NarrativeAgent:
         self.llm = llm
 
     async def run(self, question: str, query_out: dict, analysis: dict,
-                  language: str = "en", history: list | None = None) -> dict:
+                  language: str = "en", history: list | None = None,
+                  context: list | None = None) -> dict:
         await emit_event("narrative_agent", "running", "Composing the executive answer…")
 
         result = query_out.get("result", {})
@@ -53,7 +54,7 @@ class NarrativeAgent:
 
         system = self._system_for(language)
         user = self._build_prompt(
-            question, facts, result, notes, query_out.get("filters_summary", ""), history
+            question, facts, result, notes, query_out.get("filters_summary", ""), history, context
         )
 
         # Stream tokens as they arrive (falls back to a single call for stubs /
@@ -87,7 +88,8 @@ class NarrativeAgent:
             )
         return _SYSTEM
 
-    def _build_prompt(self, question, facts, result, notes, filters_summary, history=None) -> str:
+    def _build_prompt(self, question, facts, result, notes, filters_summary,
+                      history=None, context=None) -> str:
         preview = result.get("rows", [])[:15]
         cols = result.get("columns", [])
         facts_block = "\n".join(f"- {f}" for f in facts) if facts else "- (no derived facts)"
@@ -99,12 +101,24 @@ class NarrativeAgent:
             if turns:
                 lines = "\n".join(f"{t.get('role', 'user')}: {t.get('content', '')}" for t in turns)
                 hist_block = f"CONVERSATION SO FAR (for context/continuity):\n{lines}\n\n"
+        context_block = ""
+        if context:
+            lines = "\n".join(
+                f"- [{e['date']}] {e['title']}: {e['description']} (Source: {e['source']})"
+                for e in context
+            )
+            context_block = (
+                "MARKET CONTEXT — real, dated events. If one genuinely helps explain a 'why', "
+                "reference it briefly and name the source in parentheses. Do NOT force-fit them.\n"
+                f"{lines}\n\n"
+            )
         return (
             f"{hist_block}"
             f"QUESTION:\n{question}\n\n"
             f"FILTERS APPLIED: {filters_summary or '(see data)'}\n\n"
             f"FACTS (deterministically computed — safe to cite verbatim):\n{facts_block}\n\n"
             f"DATA (first rows of the query result):\n{data_block}\n\n"
+            f"{context_block}"
             f"CAVEATS:\n{caveats}\n\n"
             "Write the answer now."
         )

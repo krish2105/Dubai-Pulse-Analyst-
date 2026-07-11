@@ -6,6 +6,7 @@ import { BarChart3, LayoutDashboard, Map as MapIcon } from "lucide-react";
 import KpiDashboard from "./KpiDashboard";
 import MapPanel from "./MapPanel";
 import AnalyticsPanel from "./AnalyticsPanel";
+import ForecastChart from "./ForecastChart";
 
 type Tab = "overview" | "map" | "analytics";
 
@@ -46,7 +47,12 @@ export default function RightPanel() {
         })}
       </div>
       <div className="flex-1 overflow-y-auto">
-        {tab === "overview" && <KpiDashboard />}
+        {tab === "overview" && (
+          <>
+            <div className="px-4 pt-4"><ForecastChart /></div>
+            <KpiDashboard />
+          </>
+        )}
         {tab === "map" && <MapPanel />}
         {tab === "analytics" && <AnalyticsPanel />}
       </div>
