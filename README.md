@@ -57,18 +57,27 @@ It's a portfolio project designed to demonstrate real *production instincts* for
 | 🌍 **Bilingual (EN / العربية)** | Answer in English or Arabic (with RTL); Arabic questions auto-detected. |
 | 🌗 **Light & dark themes** | Polished, fully theme-aware UI with a one-click toggle (and `?theme=` deep-link). |
 | 🆓 **Free & pluggable LLM** | Runs on local **Ollama** with no API key/cost; swap to Groq/Gemini/OpenAI/Claude via one env var. |
+| 🔒 **OWASP-aligned security** | Input guardrail (prompt-injection/SQL-write block), security headers, concurrency cap, Redis-or-memory rate limiting. |
+| 📈 **Observability + feedback** | Per-request latency/token/cost telemetry, `/metrics`, JSONL audit log, 👍/👎 feedback. |
+| 🗺️ **Geospatial heatmap** | Interactive Dubai map — communities coloured by price/yield, sized by volume (free tiles, no token). |
+| 🔮 **Price forecasting** | Explainable trend + seasonality forecast with a ±2σ confidence band. |
+| 🔎 **RAG market context** | BM25 retrieval over dated, sourced market events grounds *why* answers with real citations. |
 
 ---
 
 ## Screenshots
 
-**Light mode — market overview & dashboard**
+| Live reasoning trace + verified answer (dark) | Market overview + forecast (dark) |
+|---|---|
+| ![Reasoning trace](docs/screenshot_trace.png) | ![Forecast](docs/screenshot_forecast.png) |
+
+| Interactive price map (dark) | Deep analytics (light) |
+|---|---|
+| ![Map](docs/screenshot_map.png) | ![Analytics](docs/screenshot_analytics.png) |
+
+Light mode:
 
 ![Light mode](docs/screenshot_light.png)
-
-**Dark mode — live reasoning trace + verified answer**
-
-![Reasoning trace](docs/screenshot_trace.png)
 
 ---
 
@@ -97,6 +106,25 @@ provably come from the data); the LLM is dependency-injected, so the whole orche
 
 ---
 
+## 3½. Security & observability (OWASP-aligned)
+
+Mapped to the [2025 OWASP Top 10 for LLM Applications](https://genai.owasp.org/):
+
+| Risk | Mitigation in this project |
+|------|----------------------------|
+| **LLM01 Prompt Injection** | Deterministic **input guardrail** blocks injection/jailbreak/system-prompt-leak attempts before the pipeline runs, with a safe refusal. |
+| **LLM05 Improper Output Handling** | Read-only, single-statement, row-capped SQL; answers rendered as escaped markdown (no XSS). |
+| **LLM06 Excessive Agency** | The agents can only *read* data — no writes, no external side-effects. |
+| **LLM10 Unbounded Consumption** | Concurrency cap + per-request token/timeout budget + Redis-or-memory rate limiting. |
+| **Transport** | Security headers (nosniff, X-Frame-Options, Referrer-Policy, CSP `frame-ancestors`, HSTS in prod). |
+
+**Observability:** every request is measured — latency, LLM calls, estimated tokens/cost,
+routing & verification outcome — surfaced live in the UI, aggregated at **`GET /metrics`**
+(p50/p95 latency, token totals, confidence mix, verified rate), and written to an append-only
+**JSONL audit log**. Users can rate answers 👍/👎 (`POST /feedback`) to feed the eval loop.
+
+---
+
 ## 4. Tech stack
 
 | Layer | Choice |
@@ -107,7 +135,12 @@ provably come from the data); the LLM is dependency-injected, so the whole orche
 | Orchestration | LangGraph (state machine) |
 | Data engine | DuckDB over Parquet |
 | LLM | **Pluggable & free by default** — Ollama (local, no key) · Groq · Gemini · OpenAI · Anthropic |
-| Auth / limits | `X-API-Key` middleware · slowapi rate limiting |
+| Retrieval (RAG) | BM25 (`rank-bm25`) over a curated market-events corpus |
+| Forecasting | NumPy trend + seasonality + ±2σ band (no heavy ML deps) |
+| Map | Leaflet + react-leaflet, free OSM/Carto tiles |
+| Caching / limits | Redis (`REDIS_URL`) with in-memory fallback · slowapi rate limiting |
+| Security | Input guardrail · security-headers middleware · concurrency cap |
+| Observability | Custom telemetry · `/metrics` · JSONL audit log · feedback |
 | Container / CI | Docker · GitHub Actions (ruff + pytest + eslint + build) |
 | Hosting | Frontend → Vercel · Backend → Railway / Render |
 

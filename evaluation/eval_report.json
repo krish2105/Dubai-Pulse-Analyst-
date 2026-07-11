@@ -35,21 +35,21 @@
       "cited": true,
       "confidence_flagged": true,
       "passed": true,
-      "answer": "The rental yield for properties in Downtown Dubai and Dubai Marina in 2025 is very close, with both areas having an average gross rental yield of 6.49%. Dubai M"
+      "answer": "In 2025, both Downtown Dubai and Dubai Marina offer similar rental yields, with Dubai Marina at 6.51% and Downtown Dubai at 6.49%. The slight edge to Dubai Mari"
     },
     {
       "question": "Why did off-plan transaction volume change in early 2022?",
       "expected_route": "analytical",
       "route": "analytical",
-      "confidence": "high",
-      "verified": "5/5",
+      "confidence": "medium",
+      "verified": "5/6",
       "rows": 12,
       "grounded": true,
       "routed_correctly": true,
       "cited": true,
       "confidence_flagged": true,
       "passed": true,
-      "answer": "Off-plan transaction volume increased by 2.54% from July 2021 to June 2022, reaching 202.0 in June 2022 (up from 197.0 in July 2021). Notably, the volume dipped"
+      "answer": "Off-plan transaction volume increased by 2.54% from July 2021 to June 2022, reaching 202.0 in June 2022 (up from 197.0 in July 2021). This increase was notably "
     },
     {
       "question": "What is the average price per sqft in Palm Jumeirah for secondary sales in 2025?",
@@ -77,7 +77,7 @@
       "cited": false,
       "confidence_flagged": true,
       "passed": false,
-      "answer": "Based on the available data, there is no information linking the CBUAE base rate changes from 2022 to 2024 with secondary price growth per square foot in Dubai."
+      "answer": "From 2022 to 2024, secondary price growth in Dubai was influenced by CBUAE base rate changes. Starting in March 2022, as the Central Bank of the UAE (CBUAE) rai"
     },
     {
       "question": "Which communities offer the highest rental yield in 2025?",
@@ -91,21 +91,21 @@
       "cited": true,
       "confidence_flagged": true,
       "passed": true,
-      "answer": "The communities offering the highest rental yields in 2025 are Dubailand with an average yield of 6.57%, followed closely by Deira at 6.56%, and Reem Mira at 6."
+      "answer": "The communities offering the highest rental yields in 2025 are Dubailand with an average yield of 6.57%, followed by Deira at 6.56%, and Reem Mira at 6.55%. The"
     },
     {
       "question": "Compare off-plan vs secondary price per sqft in Business Bay over 2023-2025.",
       "expected_route": "analytical",
       "route": "analytical",
-      "confidence": "high",
-      "verified": "6/7",
+      "confidence": "medium",
+      "verified": "6/8",
       "rows": 72,
       "grounded": true,
       "routed_correctly": true,
       "cited": true,
       "confidence_flagged": true,
       "passed": true,
-      "answer": "Off-plan properties in Business Bay have an average price per sqft of $612.61, compared to secondary properties at $556.31 over 2023-2025. The off-plan prices m"
+      "answer": "Off-plan properties in Business Bay have averaged $594.50 per sqft by 2025-12, up from $518.50 in 2023-01, a 14.66% increase. Secondary properties have averaged"
     },
     {
       "question": "What was the average apartment price per sqft in Dubai Marina in 2025?",
